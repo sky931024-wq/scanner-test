@@ -116,20 +116,26 @@ function startScanner(){
                  * App Script page
                  */
 
-                if(window.opener){
+if(window.opener){
 
-                    window.opener.postMessage(
+    window.opener.postMessage(
 
-                        {
-                            type:"barcodeScan",
-                            value:decodedText
-                        },
+        {
+            type:"barcodeScan",
+            value:decodedText
+        },
 
-                        "*"
+        "*"
 
-                    );
+    );
 
-                }
+    setTimeout(function(){
+
+        window.close();
+
+    },500);
+
+}
 
             });
 
