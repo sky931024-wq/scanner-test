@@ -17,10 +17,11 @@ body{
     text-align:center;
     padding:20px;
     margin:0;
+    background:#ffffff;
 }
 
 h2{
-    margin-bottom:15px;
+    margin:10px 0 20px 0;
 }
 
 button{
@@ -31,6 +32,11 @@ button{
     border-radius:8px;
     border:1px solid #888;
     background:#f5f5f5;
+}
+
+button:disabled{
+    opacity:0.5;
+    cursor:not-allowed;
 }
 
 #reader{
@@ -44,6 +50,11 @@ button{
     font-size:20px;
     font-weight:bold;
     word-break:break-all;
+}
+
+#status{
+    margin-top:10px;
+    font-size:15px;
 }
 
 #formats{
@@ -67,14 +78,22 @@ button{
 </h2>
 
 
-<button onclick="startScanner()">
-START SCANNER
+<div>
+
+<button
+    id="startButton"
+    onclick="startScanner()">
+    START SCANNER
 </button>
 
 
-<button onclick="closeScanner()">
-CLOSE
+<button
+    id="closeButton"
+    onclick="closeScanner()">
+    CLOSE
 </button>
+
+</div>
 
 
 <div id="reader"></div>
@@ -82,6 +101,11 @@ CLOSE
 
 <div id="result">
 Ready
+</div>
+
+
+<div id="status">
+Scanner is ready
 </div>
 
 
@@ -111,11 +135,15 @@ Aztec
 <script>
 
 
+/* ==========================================
+   GLOBAL VARIABLES
+========================================== */
+
 var scanner = null;
 
-var scanned = false;
-
 var scannerRunning = false;
+
+var scanned = false;
 
 
 /* ==========================================
@@ -138,44 +166,120 @@ function startScanner(){
         "Starting camera...";
 
 
-    scanner =
-        new Html5Qrcode("reader");
+    document.getElementById("status").innerText =
+        "Requesting camera permission...";
+
+
+    document.getElementById("startButton").disabled =
+        true;
 
 
     /*
-     * Ask library to use all supported formats
+     * Create scanner
      */
 
-    var formatsToSupport = [
+    scanner = new Html5Qrcode(
+        "reader"
+    );
 
-        Html5QrcodeSupportedFormats.QR_CODE,
 
-        Html5QrcodeSupportedFormats.CODE_128,
+    /*
+     * Only use format constants
+     * that actually exist in the
+     * loaded html5-qrcode library.
+     */
 
-        Html5QrcodeSupportedFormats.CODE_39,
+    var formats = [];
 
-        Html5QrcodeSupportedFormats.CODE_93,
 
-        Html5QrcodeSupportedFormats.CODABAR,
+    if(
+        typeof Html5QrcodeSupportedFormats !==
+        "undefined"
+    ){
 
-        Html5QrcodeSupportedFormats.EAN_13,
+        var availableFormats = [
 
-        Html5QrcodeSupportedFormats.EAN_8,
+            "QR_CODE",
 
-        Html5QrcodeSupportedFormats.UPC_A,
+            "CODE_128",
 
-        Html5QrcodeSupportedFormats.UPC_E,
+            "CODE_39",
 
-        Html5QrcodeSupportedFormats.ITF,
+            "CODE_93",
 
-        Html5QrcodeSupportedFormats.DATA_MATRIX,
+            "CODABAR",
 
-        Html5QrcodeSupportedFormats.PDF_417,
+            "EAN_13",
 
-        Html5QrcodeSupportedFormats.AZTEC
+            "EAN_8",
 
-    ];
+            "UPC_A",
 
+            "UPC_E",
+
+            "ITF",
+
+            "DATA_MATRIX",
+
+            "PDF_417",
+
+            "AZTEC"
+
+        ];
+
+
+        availableFormats.forEach(
+            function(name){
+
+                if(
+                    typeof Html5QrcodeSupportedFormats[name]
+                    !== "undefined"
+                ){
+
+                    formats.push(
+                        Html5QrcodeSupportedFormats[name]
+                    );
+
+                }
+
+            }
+        );
+
+    }
+
+
+    /*
+     * Scanner configuration
+     */
+
+    var config = {
+
+        fps:10,
+
+        qrbox:{
+            width:250,
+            height:150
+        }
+
+    };
+
+
+    /*
+     * Only add formatsToSupport
+     * if valid formats exist.
+     */
+
+    if(formats.length > 0){
+
+        config.formatsToSupport =
+            formats;
+
+    }
+
+
+    /*
+     * Start rear camera
+     */
 
     scanner.start(
 
@@ -183,26 +287,13 @@ function startScanner(){
             facingMode:"environment"
         },
 
-
-        {
-
-            fps:10,
-
-            qrbox:{
-                width:250,
-                height:150
-            },
-
-            formatsToSupport:
-                formatsToSupport
-
-        },
+        config,
 
 
         function(decodedText, decodedResult){
 
             /*
-             * Prevent duplicate scanning
+             * Prevent duplicate results
              */
 
             if(scanned){
@@ -215,20 +306,39 @@ function startScanner(){
             scanned = true;
 
 
-            document.getElementById("result").innerText =
-                "Scanned: " + decodedText;
-
-
             console.log(
                 "SCAN RESULT:",
                 decodedText
             );
 
 
-            stopScannerAndReturn(
-                decodedText
-            );
+            document.getElementById(
+                "result"
+            ).innerText =
+                "Scanned: " + decodedText;
 
+
+            document.getElementById(
+                "status"
+            ).innerText =
+                "Scan successful";
+
+
+            /*
+             * Stop camera
+             */
+
+            stopScanner(
+
+                function(){
+
+                    sendResultToApp(
+                        decodedText
+                    );
+
+                }
+
+            );
 
         },
 
@@ -250,9 +360,22 @@ function startScanner(){
         scannerRunning = true;
 
 
-        document.getElementById("result").innerText =
+        document.getElementById(
+            "result"
+        ).innerText =
             "Scanning...";
 
+
+        document.getElementById(
+            "status"
+        ).innerText =
+            "Point camera at Barcode / QR Code";
+
+
+        document.getElementById(
+            "startButton"
+        ).disabled =
+            false;
 
     })
 
@@ -262,14 +385,29 @@ function startScanner(){
         scannerRunning = false;
 
 
+        document.getElementById(
+            "startButton"
+        ).disabled =
+            false;
+
+
         console.log(
             "Camera error:",
             error
         );
 
 
-        document.getElementById("result").innerText =
-            "Camera error: " + error;
+        document.getElementById(
+            "result"
+        ).innerText =
+            "Camera error";
+
+
+        document.getElementById(
+            "status"
+        ).innerText =
+            error.message ||
+            error;
 
     });
 
@@ -277,14 +415,24 @@ function startScanner(){
 
 
 /* ==========================================
-   STOP SCANNER + SEND RESULT
+   STOP SCANNER
 ========================================== */
 
-function stopScannerAndReturn(decodedText){
+function stopScanner(callback){
 
-    if(!scanner){
+    if(
+        !scanner ||
+        !scannerRunning
+    ){
 
-        sendResultToApp(decodedText);
+        scannerRunning = false;
+
+
+        if(callback){
+
+            callback();
+
+        }
 
         return;
 
@@ -303,10 +451,11 @@ function stopScannerAndReturn(decodedText){
         );
 
 
-        sendResultToApp(
-            decodedText
-        );
+        if(callback){
 
+            callback();
+
+        }
 
     })
 
@@ -323,13 +472,15 @@ function stopScannerAndReturn(decodedText){
 
 
         /*
-         * Even if stop fails,
-         * still send result.
+         * Even if camera stop fails,
+         * continue the process.
          */
 
-        sendResultToApp(
-            decodedText
-        );
+        if(callback){
+
+            callback();
+
+        }
 
     });
 
@@ -343,10 +494,15 @@ function stopScannerAndReturn(decodedText){
 function sendResultToApp(decodedText){
 
     console.log(
-        "Sending result to App Script:",
+        "Sending result:",
         decodedText
     );
 
+
+    /*
+     * Send to the page that opened
+     * this Scanner.
+     */
 
     if(window.opener){
 
@@ -365,14 +521,30 @@ function sendResultToApp(decodedText){
         );
 
 
+        document.getElementById(
+            "status"
+        ).innerText =
+            "Returning to Search Spare Part...";
+
+
         /*
-         * Give App Script a moment
+         * Give the parent page time
          * to receive the result.
          */
 
         setTimeout(function(){
 
-            window.close();
+            try{
+
+                window.close();
+
+            }
+
+            catch(error){
+
+                console.log(error);
+
+            }
 
         },800);
 
@@ -381,10 +553,18 @@ function sendResultToApp(decodedText){
     else{
 
         /*
-         * No opener detected.
+         * Scanner was opened directly.
          */
 
-        document.getElementById("result").innerText =
+        document.getElementById(
+            "status"
+        ).innerText =
+            "Scanner opened directly";
+
+
+        document.getElementById(
+            "result"
+        ).innerText =
             "Scanned: " + decodedText;
 
     }
@@ -398,48 +578,31 @@ function sendResultToApp(decodedText){
 
 function closeScanner(){
 
+    document.getElementById(
+        "status"
+    ).innerText =
+        "Closing scanner...";
+
+
     /*
      * Stop camera first
      */
 
-    if(scanner && scannerRunning){
+    stopScanner(
 
-        scanner.stop()
-
-        .then(function(){
-
-            scannerRunning = false;
+        function(){
 
             returnToApp();
 
-        })
+        }
 
-        .catch(function(error){
-
-            console.log(
-                "Stop error:",
-                error
-            );
-
-            scannerRunning = false;
-
-            returnToApp();
-
-        });
-
-    }
-
-    else{
-
-        returnToApp();
-
-    }
+    );
 
 }
 
 
 /* ==========================================
-   RETURN TO APP SCRIPT
+   RETURN TO APP
 ========================================== */
 
 function returnToApp(){
@@ -466,7 +629,17 @@ function returnToApp(){
 
         setTimeout(function(){
 
-            window.close();
+            try{
+
+                window.close();
+
+            }
+
+            catch(error){
+
+                console.log(error);
+
+            }
 
         },300);
 
@@ -474,13 +647,36 @@ function returnToApp(){
 
     else{
 
-        document.getElementById("result").innerText =
+        /*
+         * Browser may block closing
+         * a tab that was not opened
+         * by JavaScript.
+         */
+
+        document.getElementById(
+            "status"
+        ).innerText =
             "Please close this window.";
 
     }
 
 }
 
+
+/* ==========================================
+   PAGE LOAD
+========================================== */
+
+window.addEventListener(
+    "load",
+    function(){
+
+        console.log(
+            "Scanner page loaded"
+        );
+
+    }
+);
 
 </script>
 
