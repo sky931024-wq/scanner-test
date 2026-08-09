@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<meta name="viewport"
+      content="width=device-width,initial-scale=1">
+
+<title>Camera Test</title>
+
+<style>
+
+body{
+    font-family:Arial;
+    text-align:center;
+    padding:20px;
+}
+
+video{
+    width:100%;
+    max-width:500px;
+    margin-top:20px;
+}
+
+button{
+    padding:12px 25px;
+    font-size:18px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h2>📷 Camera Test</h2>
+
+<button onclick="startCamera()">
+START CAMERA
+</button>
+
+<br>
+
+<video
+    id="video"
+    autoplay
+    playsinline>
+</video>
+
+<script>
+
+function startCamera(){
+
+    navigator.mediaDevices.getUserMedia({
+        video:{
+            facingMode:"environment"
+        }
+    })
+
+    .then(function(stream){
+
+        document.getElementById("video").srcObject = stream;
+
+    })
+
+    .catch(function(error){
+
+        alert(
+            error.name +
+            "\n" +
+            error.message
+        );
+
+        console.log(error);
+
+    });
+
+}
+
+</script>
+
+</body>
+
+</html>
