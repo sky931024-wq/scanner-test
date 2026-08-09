@@ -6,7 +6,9 @@
 <meta name="viewport"
       content="width=device-width,initial-scale=1">
 
-<title>Camera Test</title>
+<title>Barcode Scanner</title>
+
+<script src="https://unpkg.com/html5-qrcode"></script>
 
 <style>
 
@@ -16,15 +18,21 @@ body{
     padding:20px;
 }
 
-video{
+#reader{
     width:100%;
     max-width:500px;
-    margin-top:20px;
+    margin:20px auto;
 }
 
 button{
     padding:12px 25px;
     font-size:18px;
+}
+
+#result{
+    margin-top:20px;
+    font-size:20px;
+    font-weight:bold;
 }
 
 </style>
@@ -33,45 +41,116 @@ button{
 
 <body>
 
-<h2>📷 Camera Test</h2>
+<h2>📷 Barcode / QR Scanner</h2>
 
-<button onclick="startCamera()">
-START CAMERA
+<button onclick="startScanner()">
+START SCANNER
 </button>
 
-<br>
+<div id="reader"></div>
 
-<video
-    id="video"
-    autoplay
-    playsinline>
-</video>
+<div id="result"></div>
+
 
 <script>
 
-function startCamera(){
+var scanner = null;
+var scanned = false;
 
-    navigator.mediaDevices.getUserMedia({
-        video:{
+
+function startScanner(){
+
+    scanned = false;
+
+    document.getElementById("result").innerText =
+        "Scanning...";
+
+
+    scanner = new Html5Qrcode("reader");
+
+
+    scanner.start(
+
+        {
             facingMode:"environment"
+        },
+
+        {
+            fps:10,
+
+            qrbox:{
+                width:250,
+                height:150
+            }
+
+        },
+
+        function(decodedText){
+
+            if(scanned){
+                return;
+            }
+
+            scanned = true;
+
+
+            document.getElementById("result").innerText =
+                "Scanned: " + decodedText;
+
+
+            console.log(
+                "SCAN RESULT:",
+                decodedText
+            );
+
+
+            scanner.stop().then(function(){
+
+                console.log(
+                    "Scanner stopped"
+                );
+
+
+                /*
+                 * Send result back to
+                 * App Script page
+                 */
+
+                if(window.opener){
+
+                    window.opener.postMessage(
+
+                        {
+                            type:"barcodeScan",
+                            value:decodedText
+                        },
+
+                        "*"
+
+                    );
+
+                }
+
+            });
+
+
+        },
+
+        function(errorMessage){
+
+            // scanning continuously
+            // ignore normal scan errors
+
         }
-    })
 
-    .then(function(stream){
-
-        document.getElementById("video").srcObject = stream;
-
-    })
+    )
 
     .catch(function(error){
 
-        alert(
-            error.name +
-            "\n" +
-            error.message
-        );
-
         console.log(error);
+
+        document.getElementById("result").innerText =
+            "Camera error: " + error;
 
     });
 
