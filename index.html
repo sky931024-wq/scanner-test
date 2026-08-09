@@ -499,71 +499,26 @@ function sendResultToApp(decodedText){
     );
 
 
-    /*
-     * Send to the page that opened
-     * this Scanner.
-     */
-
-    if(window.opener){
-
-        window.opener.postMessage(
-
-            {
-
-                type:"barcodeScan",
-
-                value:decodedText
-
-            },
-
-            "*"
-
-        );
+    var returnUrl = getReturnUrl();
 
 
-        document.getElementById(
-            "status"
-        ).innerText =
-            "Returning to Search Spare Part...";
+    if(returnUrl){
+
+        var target =
+            returnUrl +
+            "?page=search" +
+            "&scanResult=" +
+            encodeURIComponent(decodedText);
 
 
-        /*
-         * Give the parent page time
-         * to receive the result.
-         */
-
-        setTimeout(function(){
-
-            try{
-
-                window.close();
-
-            }
-
-            catch(error){
-
-                console.log(error);
-
-            }
-
-        },800);
+        window.location.href = target;
 
     }
 
     else{
 
-        /*
-         * Scanner was opened directly.
-         */
-
         document.getElementById(
             "status"
-        ).innerText =
-            "Scanner opened directly";
-
-
-        document.getElementById(
-            "result"
         ).innerText =
             "Scanned: " + decodedText;
 
@@ -608,50 +563,21 @@ function closeScanner(){
 function returnToApp(){
 
     console.log(
-        "Returning to App Script"
+        "Returning to Search Spare Part"
     );
 
 
-    if(window.opener){
-
-        window.opener.postMessage(
-
-            {
-
-                type:"scannerClose"
-
-            },
-
-            "*"
-
-        );
+    var returnUrl = getReturnUrl();
 
 
-        setTimeout(function(){
+    if(returnUrl){
 
-            try{
-
-                window.close();
-
-            }
-
-            catch(error){
-
-                console.log(error);
-
-            }
-
-        },300);
+        window.location.href =
+            returnUrl + "?page=search";
 
     }
 
     else{
-
-        /*
-         * Browser may block closing
-         * a tab that was not opened
-         * by JavaScript.
-         */
 
         document.getElementById(
             "status"
@@ -677,6 +603,17 @@ window.addEventListener(
 
     }
 );
+
+      function getReturnUrl(){
+
+    var params =
+        new URLSearchParams(
+            window.location.search
+        );
+
+    return params.get("returnUrl");
+
+}
 
 </script>
 
