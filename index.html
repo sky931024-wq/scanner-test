@@ -47,6 +47,12 @@ button{
 START SCANNER
 </button>
 
+<br><br>
+
+<button onclick="closeScanner()">
+CLOSE
+</button>
+
 <div id="reader"></div>
 
 <div id="result"></div>
@@ -112,40 +118,45 @@ function startScanner(){
 
 
                 /*
-                 * Send result back to
-                 * App Script page
+                 * Send scan result
+                 * back to App Script
                  */
 
-if(window.opener){
+                if(window.opener){
 
-    window.opener.postMessage(
+                    window.opener.postMessage(
 
-        {
-            type:"barcodeScan",
-            value:decodedText
-        },
+                        {
+                            type:"barcodeScan",
+                            value:decodedText
+                        },
 
-        "*"
+                        "*"
 
-    );
+                    );
 
-    setTimeout(function(){
+                }
 
-        window.close();
 
-    },500);
+                /*
+                 * Close scanner window
+                 */
 
-}
+                setTimeout(function(){
+
+                    window.close();
+
+                },800);
+
 
             });
 
-
         },
+
 
         function(errorMessage){
 
-            // scanning continuously
-            // ignore normal scan errors
+            // Ignore normal scanning errors
 
         }
 
@@ -159,6 +170,41 @@ if(window.opener){
             "Camera error: " + error;
 
     });
+
+}
+
+      function closeScanner(){
+
+    if(scanner){
+
+        scanner.stop()
+        .catch(function(error){
+
+            console.log(error);
+
+        });
+
+    }
+
+    if(window.opener){
+
+        window.opener.postMessage(
+
+            {
+                type:"scannerClose"
+            },
+
+            "*"
+
+        );
+
+    }
+
+    setTimeout(function(){
+
+        window.close();
+
+    },300);
 
 }
 
