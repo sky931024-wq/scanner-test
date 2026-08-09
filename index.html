@@ -615,6 +615,17 @@ window.addEventListener(
 
 }
 
+      function getReturnUrl(){
+
+  var params =
+    new URLSearchParams(
+      window.location.search
+    );
+
+  return params.get("returnUrl");
+
+}
+
 </script>
 
 
