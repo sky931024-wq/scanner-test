@@ -493,33 +493,37 @@ function stopScanner(callback){
 
 function sendResultToApp(decodedText){
 
-    var returnUrl =
-        getReturnUrl();
+    if(window.opener){
 
+        window.opener.postMessage(
 
-    if(returnUrl){
+            {
+                type:"barcodeScan",
+                value:decodedText
+            },
 
-        window.location.href =
-            returnUrl +
-            "?scanResult=" +
-            encodeURIComponent(
-                decodedText
-            );
+            "*"
 
-    }
+        );
 
-    else{
+        setTimeout(function(){
 
-        document.getElementById(
-            "status"
-        ).innerText =
-            "Scanned: " +
-            decodedText;
+            window.close();
+
+        },500);
+
+        return;
 
     }
+
+    document.getElementById(
+        "status"
+    ).innerText =
+        "Scanned: " +
+        decodedText;
 
 }
-
+      
 /* ==========================================
    CLOSE BUTTON
 ========================================== */
@@ -555,29 +559,25 @@ function closeScanner(){
 
 function returnToApp(){
 
-    console.log(
-        "Returning to Search Spare Part"
-    );
+    if(window.opener){
 
+        window.opener.postMessage(
 
-    var returnUrl =
-        getReturnUrl();
+            {
+                type:"scannerClose"
+            },
 
+            "*"
 
-    if(returnUrl){
+        );
 
-        window.location.href =
-            returnUrl +
-            "?scannerClose=1";
+        setTimeout(function(){
 
-    }
+            window.close();
 
-    else{
+        },300);
 
-        document.getElementById(
-            "status"
-        ).innerText =
-            "Please close this window.";
+        return;
 
     }
 
