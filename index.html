@@ -567,7 +567,8 @@ function returnToApp(){
     if(returnUrl){
 
         window.location.href =
-            returnUrl;
+            returnUrl +
+            "?scannerClose=1";
 
     }
 
@@ -581,6 +582,7 @@ function returnToApp(){
     }
 
 }
+      
 /* ==========================================
    PAGE LOAD
 ========================================== */
