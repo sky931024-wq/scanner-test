@@ -13,9 +13,13 @@
 <style>
 
 body{
-    font-family:Arial;
+    font-family:Arial,Helvetica,sans-serif;
     text-align:center;
     padding:20px;
+}
+
+h2{
+    margin-bottom:20px;
 }
 
 #reader{
@@ -27,49 +31,77 @@ body{
 button{
     padding:12px 25px;
     font-size:18px;
+    margin:5px;
+    cursor:pointer;
 }
 
 #result{
     margin-top:20px;
     font-size:20px;
     font-weight:bold;
+    word-break:break-all;
 }
 
 </style>
 
 </head>
 
+
 <body>
 
-<h2>📷 Barcode / QR Scanner</h2>
+
+<h2>
+📷 Barcode / QR Scanner
+</h2>
+
 
 <button onclick="startScanner()">
 START SCANNER
 </button>
 
-<br><br>
 
 <button onclick="closeScanner()">
 CLOSE
 </button>
 
+
 <div id="reader"></div>
+
 
 <div id="result"></div>
 
 
 <script>
 
+
 var scanner = null;
+
 var scanned = false;
 
+
+/* =========================
+   START SCANNER
+========================= */
 
 function startScanner(){
 
     scanned = false;
 
+
     document.getElementById("result").innerText =
         "Scanning...";
+
+
+    if(scanner){
+
+        scanner.stop()
+        .catch(function(error){
+
+            console.log(error);
+
+        });
+
+    }
 
 
     scanner = new Html5Qrcode("reader");
@@ -91,17 +123,19 @@ function startScanner(){
 
         },
 
+
         function(decodedText){
 
+            /* 防止同一個條碼連續觸發 */
+
             if(scanned){
+
                 return;
+
             }
 
+
             scanned = true;
-
-
-            document.getElementById("result").innerText =
-                "Scanned: " + decodedText;
 
 
             console.log(
@@ -110,7 +144,17 @@ function startScanner(){
             );
 
 
-            scanner.stop().then(function(){
+            document.getElementById("result").innerText =
+                "Scanned: " + decodedText;
+
+
+            /*
+             * 停止 Scanner
+             */
+
+            scanner.stop()
+
+            .then(function(){
 
                 console.log(
                     "Scanner stopped"
@@ -118,53 +162,52 @@ function startScanner(){
 
 
                 /*
-                 * Send scan result
-                 * back to App Script
+                 * 傳送掃描結果
+                 * 回 App Script
                  */
 
-                if(window.opener){
+                sendResultToApp(decodedText);
 
-                    window.opener.postMessage(
 
-                        {
-                            type:"barcodeScan",
-                            value:decodedText
-                        },
+            })
 
-                        "*"
+            .catch(function(error){
 
-                    );
-
-                }
+                console.log(
+                    "Scanner stop error:",
+                    error
+                );
 
 
                 /*
-                 * Close scanner window
+                 * 即使停止失敗
+                 * 仍然傳送結果
                  */
 
-                setTimeout(function(){
-
-                    window.close();
-
-                },800);
-
+                sendResultToApp(decodedText);
 
             });
+
 
         },
 
 
         function(errorMessage){
 
-            // Ignore normal scanning errors
+            /*
+             * 正常掃描過程中的錯誤
+             * 不需要顯示
+             */
 
         }
 
     )
 
+
     .catch(function(error){
 
         console.log(error);
+
 
         document.getElementById("result").innerText =
             "Camera error: " + error;
@@ -173,18 +216,117 @@ function startScanner(){
 
 }
 
-      function closeScanner(){
+
+/* =========================
+   SEND RESULT
+========================= */
+
+function sendResultToApp(decodedText){
+
+    console.log(
+        "Sending result to App Script:",
+        decodedText
+    );
+
+
+    if(window.opener){
+
+        window.opener.postMessage(
+
+            {
+                type:"barcodeScan",
+
+                value:decodedText
+            },
+
+            "*"
+
+        );
+
+
+        /*
+         * 等 App Script 收到後
+         * 再關閉 Scanner
+         */
+
+        setTimeout(function(){
+
+            window.close();
+
+        },800);
+
+
+    }
+
+    else{
+
+        console.log(
+            "No opener window found"
+        );
+
+
+        document.getElementById("result").innerText =
+            "Scanned: " + decodedText;
+
+    }
+
+}
+
+
+/* =========================
+   CLOSE
+========================= */
+
+function closeScanner(){
+
+
+    /*
+     * 如果 Scanner 正在運作
+     * 先停止鏡頭
+     */
 
     if(scanner){
 
         scanner.stop()
+
+        .then(function(){
+
+            returnToApp();
+
+        })
+
         .catch(function(error){
 
-            console.log(error);
+            console.log(
+                "Scanner stop error:",
+                error
+            );
+
+            returnToApp();
 
         });
 
     }
+
+    else{
+
+        returnToApp();
+
+    }
+
+}
+
+
+/* =========================
+   RETURN TO APP
+========================= */
+
+function returnToApp(){
+
+    console.log(
+        "Returning to App Script"
+    );
+
 
     if(window.opener){
 
@@ -198,17 +340,32 @@ function startScanner(){
 
         );
 
+
+        setTimeout(function(){
+
+            window.close();
+
+        },300);
+
     }
 
-    setTimeout(function(){
+    else{
 
-        window.close();
+        /*
+         * 如果瀏覽器不允許
+         * JavaScript 自動關閉視窗
+         */
 
-    },300);
+        document.getElementById("result").innerText =
+            "Please close this window.";
+
+    }
 
 }
 
+
 </script>
+
 
 </body>
 
