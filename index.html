@@ -493,25 +493,18 @@ function stopScanner(callback){
 
 function sendResultToApp(decodedText){
 
-    console.log(
-        "Sending result:",
-        decodedText
-    );
-
-
-    var returnUrl = getReturnUrl();
+    var returnUrl =
+        getReturnUrl();
 
 
     if(returnUrl){
 
-        var target =
+        window.location.href =
             returnUrl +
-            "?page=search" +
-            "&scanResult=" +
-            encodeURIComponent(decodedText);
-
-
-        window.location.href = target;
+            "?scanResult=" +
+            encodeURIComponent(
+                decodedText
+            );
 
     }
 
@@ -520,12 +513,12 @@ function sendResultToApp(decodedText){
         document.getElementById(
             "status"
         ).innerText =
-            "Scanned: " + decodedText;
+            "Scanned: " +
+            decodedText;
 
     }
 
 }
-
 
 /* ==========================================
    CLOSE BUTTON
@@ -567,13 +560,14 @@ function returnToApp(){
     );
 
 
-    var returnUrl = getReturnUrl();
+    var returnUrl =
+        getReturnUrl();
 
 
     if(returnUrl){
 
         window.location.href =
-            returnUrl + "?page=search";
+            returnUrl;
 
     }
 
@@ -587,8 +581,6 @@ function returnToApp(){
     }
 
 }
-
-
 /* ==========================================
    PAGE LOAD
 ========================================== */
