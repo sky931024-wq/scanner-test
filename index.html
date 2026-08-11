@@ -88,6 +88,14 @@ button:disabled{
 
 
 <button
+    id="flashButton"
+    onclick="toggleFlash()"
+    disabled>
+    🔦 FLASHLIGHT
+</button>
+
+
+<button
     id="closeButton"
     onclick="closeScanner()">
     CLOSE
@@ -145,6 +153,37 @@ var scannerRunning = false;
 
 var scanned = false;
 
+var flashOn = false;
+
+var cameraTrack = null;
+
+
+/* ==========================================
+   GET SCANNER MODE
+========================================== */
+
+function getScannerMode(){
+
+    var params =
+        new URLSearchParams(
+            window.location.search
+        );
+
+
+    var mode =
+        params.get("mode");
+
+
+    console.log(
+        "SCANNER MODE =",
+        mode
+    );
+
+
+    return mode;
+
+}
+
 
 /* ==========================================
    START SCANNER
@@ -161,16 +200,32 @@ function startScanner(){
 
     scanned = false;
 
+    flashOn = false;
 
-    document.getElementById("result").innerText =
+    cameraTrack = null;
+
+
+    document.getElementById(
+        "result"
+    ).innerText =
         "Starting camera...";
 
 
-    document.getElementById("status").innerText =
+    document.getElementById(
+        "status"
+    ).innerText =
         "Requesting camera permission...";
 
 
-    document.getElementById("startButton").disabled =
+    document.getElementById(
+        "startButton"
+    ).disabled =
+        true;
+
+
+    document.getElementById(
+        "flashButton"
+    ).disabled =
         true;
 
 
@@ -178,15 +233,14 @@ function startScanner(){
      * Create scanner
      */
 
-    scanner = new Html5Qrcode(
-        "reader"
-    );
+    scanner =
+        new Html5Qrcode(
+            "reader"
+        );
 
 
     /*
-     * Only use format constants
-     * that actually exist in the
-     * loaded html5-qrcode library.
+     * Supported formats
      */
 
     var formats = [];
@@ -232,7 +286,8 @@ function startScanner(){
             function(name){
 
                 if(
-                    typeof Html5QrcodeSupportedFormats[name]
+                    typeof
+                    Html5QrcodeSupportedFormats[name]
                     !== "undefined"
                 ){
 
@@ -265,8 +320,7 @@ function startScanner(){
 
 
     /*
-     * Only add formatsToSupport
-     * if valid formats exist.
+     * Add formats if available
      */
 
     if(formats.length > 0){
@@ -290,7 +344,10 @@ function startScanner(){
         config,
 
 
-        function(decodedText, decodedResult){
+        function(
+            decodedText,
+            decodedResult
+        ){
 
             /*
              * Prevent duplicate results
@@ -315,13 +372,21 @@ function startScanner(){
             document.getElementById(
                 "result"
             ).innerText =
-                "Scanned: " + decodedText;
+                "Scanned: " +
+                decodedText;
 
 
             document.getElementById(
                 "status"
             ).innerText =
                 "Scan successful";
+
+
+            /*
+             * Turn flash OFF
+             */
+
+            turnFlashOff();
 
 
             /*
@@ -360,6 +425,68 @@ function startScanner(){
         scannerRunning = true;
 
 
+        /*
+         * Get camera video track
+         */
+
+        try{
+
+            var videoElement =
+                document.querySelector(
+                    "#reader video"
+                );
+
+
+            if(videoElement){
+
+                var stream =
+                    videoElement.srcObject;
+
+
+                if(stream){
+
+                    var tracks =
+                        stream.getVideoTracks();
+
+
+                    if(
+                        tracks &&
+                        tracks.length > 0
+                    ){
+
+                        cameraTrack =
+                            tracks[0];
+
+                    }
+
+                }
+
+            }
+
+        }catch(error){
+
+            console.log(
+                "Cannot get camera track:",
+                error
+            );
+
+        }
+
+
+        /*
+         * Enable flashlight button
+         */
+
+        document.getElementById(
+            "flashButton"
+        ).disabled = false;
+
+
+        document.getElementById(
+            "startButton"
+        ).disabled = false;
+
+
         document.getElementById(
             "result"
         ).innerText =
@@ -372,10 +499,11 @@ function startScanner(){
             "Point camera at Barcode / QR Code";
 
 
-        document.getElementById(
-            "startButton"
-        ).disabled =
-            false;
+        /*
+         * Check flashlight support
+         */
+
+        checkFlashSupport();
 
     })
 
@@ -384,11 +512,19 @@ function startScanner(){
 
         scannerRunning = false;
 
+        cameraTrack = null;
+
 
         document.getElementById(
             "startButton"
         ).disabled =
             false;
+
+
+        document.getElementById(
+            "flashButton"
+        ).disabled =
+            true;
 
 
         console.log(
@@ -415,10 +551,286 @@ function startScanner(){
 
 
 /* ==========================================
+   CHECK FLASH SUPPORT
+========================================== */
+
+function checkFlashSupport(){
+
+    if(!cameraTrack){
+
+        console.log(
+            "No camera track"
+        );
+
+        return;
+
+    }
+
+
+    try{
+
+        var capabilities =
+            cameraTrack.getCapabilities();
+
+
+        console.log(
+            "CAMERA CAPABILITIES =",
+            capabilities
+        );
+
+
+        if(
+            capabilities &&
+            capabilities.torch
+        ){
+
+            console.log(
+                "FLASHLIGHT SUPPORTED"
+            );
+
+            document.getElementById(
+                "status"
+            ).innerText =
+                "Scanner ready - Flashlight available";
+
+        }else{
+
+            console.log(
+                "FLASHLIGHT NOT SUPPORTED"
+            );
+
+        }
+
+    }catch(error){
+
+        console.log(
+            "Flash support check error:",
+            error
+        );
+
+    }
+
+}
+
+
+/* ==========================================
+   TOGGLE FLASH
+========================================== */
+
+function toggleFlash(){
+
+    if(!scannerRunning){
+
+        alert(
+            "Please start scanner first."
+        );
+
+        return;
+
+    }
+
+
+    if(!cameraTrack){
+
+        alert(
+            "Camera track not available."
+        );
+
+        return;
+
+    }
+
+
+    try{
+
+        var capabilities =
+            cameraTrack.getCapabilities();
+
+
+        if(
+            !capabilities ||
+            !capabilities.torch
+        ){
+
+            alert(
+                "⚠️ Flashlight is not supported on this device/browser."
+            );
+
+            return;
+
+        }
+
+
+        flashOn =
+            !flashOn;
+
+
+        cameraTrack.applyConstraints({
+
+            advanced:[
+                {
+                    torch:flashOn
+                }
+            ]
+
+        })
+
+        .then(function(){
+
+            console.log(
+                "FLASH =",
+                flashOn
+            );
+
+
+            if(flashOn){
+
+                document.getElementById(
+                    "flashButton"
+                ).innerText =
+                    "🔦 FLASH ON";
+
+
+                document.getElementById(
+                    "status"
+                ).innerText =
+                    "Flashlight ON";
+
+            }else{
+
+                document.getElementById(
+                    "flashButton"
+                ).innerText =
+                    "🔦 FLASHLIGHT";
+
+
+                document.getElementById(
+                    "status"
+                ).innerText =
+                    "Flashlight OFF";
+
+            }
+
+        })
+
+        .catch(function(error){
+
+            console.log(
+                "Flashlight error:",
+                error
+            );
+
+
+            flashOn = false;
+
+
+            document.getElementById(
+                "flashButton"
+            ).innerText =
+                "🔦 FLASHLIGHT";
+
+
+            alert(
+                "⚠️ Cannot control flashlight on this device."
+            );
+
+        });
+
+    }catch(error){
+
+        console.log(
+            "Flashlight error:",
+            error
+        );
+
+
+        alert(
+            "⚠️ Flashlight is not supported."
+        );
+
+    }
+
+}
+
+
+/* ==========================================
+   TURN FLASH OFF
+========================================== */
+
+function turnFlashOff(){
+
+    if(
+        !cameraTrack ||
+        !flashOn
+    ){
+
+        return;
+
+    }
+
+
+    try{
+
+        cameraTrack.applyConstraints({
+
+            advanced:[
+                {
+                    torch:false
+                }
+            ]
+
+        })
+
+        .catch(function(error){
+
+            console.log(
+                "Cannot turn flash off:",
+                error
+            );
+
+        });
+
+    }catch(error){
+
+        console.log(
+            "Flash off error:",
+            error
+        );
+
+    }
+
+
+    flashOn = false;
+
+
+    var flashButton =
+        document.getElementById(
+            "flashButton"
+        );
+
+
+    if(flashButton){
+
+        flashButton.innerText =
+            "🔦 FLASHLIGHT";
+
+    }
+
+}
+
+
+/* ==========================================
    STOP SCANNER
 ========================================== */
 
 function stopScanner(callback){
+
+    /*
+     * Turn flash off first
+     */
+
+    turnFlashOff();
+
 
     if(
         !scanner ||
@@ -426,6 +838,8 @@ function stopScanner(callback){
     ){
 
         scannerRunning = false;
+
+        cameraTrack = null;
 
 
         if(callback){
@@ -445,10 +859,18 @@ function stopScanner(callback){
 
         scannerRunning = false;
 
+        cameraTrack = null;
+
 
         console.log(
             "Scanner stopped"
         );
+
+
+        document.getElementById(
+            "flashButton"
+        ).disabled =
+            true;
 
 
         if(callback){
@@ -464,11 +886,19 @@ function stopScanner(callback){
 
         scannerRunning = false;
 
+        cameraTrack = null;
+
 
         console.log(
             "Scanner stop error:",
             error
         );
+
+
+        document.getElementById(
+            "flashButton"
+        ).disabled =
+            true;
 
 
         /*
@@ -488,23 +918,62 @@ function stopScanner(callback){
 
 
 /* ==========================================
-   SEND RESULT TO APP SCRIPT
+   SEND RESULT TO APP
 ========================================== */
 
 function sendResultToApp(decodedText){
 
     if(window.opener){
 
+        /*
+         * Get scanner mode
+         */
+
+        var mode =
+            getScannerMode();
+
+
+        console.log(
+            "SEND SCAN RESULT"
+        );
+
+
+        console.log(
+            "VALUE =",
+            decodedText
+        );
+
+
+        console.log(
+            "MODE =",
+            mode
+        );
+
+
+        /*
+         * Send result to parent window
+         */
+
         window.opener.postMessage(
 
             {
+
                 type:"barcodeScan",
-                value:decodedText
+
+                value:decodedText,
+
+                mode:mode
+
             },
 
             "*"
 
         );
+
+
+        /*
+         * Close scanner window
+         */
 
         setTimeout(function(){
 
@@ -512,9 +981,15 @@ function sendResultToApp(decodedText){
 
         },500);
 
+
         return;
 
     }
+
+
+    /*
+     * No opener
+     */
 
     document.getElementById(
         "status"
@@ -523,7 +998,8 @@ function sendResultToApp(decodedText){
         decodedText;
 
 }
-      
+
+
 /* ==========================================
    CLOSE BUTTON
 ========================================== */
@@ -564,12 +1040,15 @@ function returnToApp(){
         window.opener.postMessage(
 
             {
+
                 type:"scannerClose"
+
             },
 
             "*"
 
         );
+
 
         setTimeout(function(){
 
@@ -577,12 +1056,14 @@ function returnToApp(){
 
         },300);
 
+
         return;
 
     }
 
 }
-      
+
+
 /* ==========================================
    PAGE LOAD
 ========================================== */
@@ -595,28 +1076,31 @@ window.addEventListener(
             "Scanner page loaded"
         );
 
+
+        console.log(
+            "SCANNER MODE =",
+            getScannerMode()
+        );
+
     }
 );
 
-      function getReturnUrl(){
+
+/* ==========================================
+   GET RETURN URL
+========================================== */
+
+function getReturnUrl(){
 
     var params =
         new URLSearchParams(
             window.location.search
         );
 
-    return params.get("returnUrl");
 
-}
-
-      function getReturnUrl(){
-
-  var params =
-    new URLSearchParams(
-      window.location.search
+    return params.get(
+        "returnUrl"
     );
-
-  return params.get("returnUrl");
 
 }
 
