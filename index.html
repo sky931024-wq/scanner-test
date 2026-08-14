@@ -926,6 +926,7 @@ function stopScanner(callback){
 
 /* ==========================================
    SEND RESULT TO APP
+   URL RETURN METHOD
 ========================================== */
 
 function sendResultToApp(decodedText){
@@ -972,51 +973,16 @@ function sendResultToApp(decodedText){
     );
 
 
-    /*
-     * =====================================
-     * RETURN TO APPS SCRIPT
-     * PRIMARY METHOD
-     * =====================================
-     */
+    if(!returnUrl){
 
-    if(returnUrl){
-
-        var separator =
-            returnUrl.indexOf("?") >= 0
-                ? "&"
-                : "?";
-
-
-        var finalUrl =
-            returnUrl +
-            separator +
-            "scanResult=" +
-            encodeURIComponent(
-                decodedText
-            ) +
-            "&scanMode=" +
-            encodeURIComponent(
-                mode || ""
-            );
-
+        document.getElementById(
+            "status"
+        ).innerText =
+            "Return URL not found.";
 
         console.log(
-            "FINAL RETURN URL =",
-            finalUrl
+            "NO RETURN URL"
         );
-
-
-        /*
-         * IMPORTANT
-         *
-         * location.replace()
-         * instead of window.close()
-         */
-
-        window.location.replace(
-            finalUrl
-        );
-
 
         return;
 
@@ -1024,61 +990,45 @@ function sendResultToApp(decodedText){
 
 
     /*
-     * =====================================
-     * FALLBACK
-     * =====================================
+     * Build return URL
      */
 
-    if(window.opener){
-
-        try{
-
-            window.opener.postMessage(
-
-                {
-
-                    type:
-                        "barcodeScan",
-
-                    value:
-                        decodedText,
-
-                    mode:
-                        mode
-
-                },
-
-                "*"
-
-            );
+    var separator =
+        returnUrl.indexOf("?") >= 0
+            ? "&"
+            : "?";
 
 
-            setTimeout(function(){
-
-                window.close();
-
-            },500);
-
-
-            return;
-
-        }catch(error){
-
-            console.log(
-                "postMessage ERROR =",
-                error
-            );
-
-        }
-
-    }
+    var finalUrl =
+        returnUrl +
+        separator +
+        "scanResult=" +
+        encodeURIComponent(
+            decodedText
+        ) +
+        "&scanMode=" +
+        encodeURIComponent(
+            mode || ""
+        );
 
 
-    document.getElementById(
-        "status"
-    ).innerText =
-        "Scanned: " +
-        decodedText;
+    console.log(
+        "FINAL RETURN URL =",
+        finalUrl
+    );
+
+
+    /*
+     * IMPORTANT
+     *
+     * Do NOT use window.opener
+     * Do NOT use window.close
+     *
+     * Directly navigate back.
+     */
+
+    window.location.href =
+        finalUrl;
 
 }
 
@@ -1159,28 +1109,26 @@ function returnToApp(){
     );
 
 
-    /*
-     * =====================================
-     * PRIMARY METHOD
-     * RETURN BY URL
-     * =====================================
-     */
+    if(!returnUrl){
 
-    if(returnUrl){
-
-        console.log(
-            "RETURNING TO APPS SCRIPT BY URL"
-        );
-
-
-        window.location.replace(
-            returnUrl
-        );
-
+        document.getElementById(
+            "status"
+        ).innerText =
+            "Cannot return to app.";
 
         return;
 
     }
+
+
+    /*
+     * Directly go back to Apps Script
+     */
+
+    window.location.href =
+        returnUrl;
+
+}
 
 
     /*
@@ -1239,6 +1187,23 @@ function returnToApp(){
         "status"
     ).innerText =
         "Cannot return to app.";
+
+}
+
+/* ==========================================
+   GET RETURN URL
+========================================== */
+
+function getReturnUrl(){
+
+    var params =
+        new URLSearchParams(
+            window.location.search
+        );
+
+    return params.get(
+        "returnUrl"
+    );
 
 }
 
