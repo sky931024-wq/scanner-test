@@ -10,59 +10,157 @@
 
 <script src="https://unpkg.com/html5-qrcode"></script>
 
+
 <style>
 
+/* ==========================================
+   BODY
+========================================== */
+
 body{
-    font-family:Arial,Helvetica,sans-serif;
+
+    font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
+
     text-align:center;
+
     padding:20px;
+
     margin:0;
+
     background:#ffffff;
+
 }
+
+
+/* ==========================================
+   TITLE
+========================================== */
 
 h2{
-    margin:10px 0 20px 0;
+
+    margin:
+        10px 0
+        20px 0;
+
 }
+
+
+/* ==========================================
+   BUTTON
+   IMPORTANT FOR IPHONE SAFARI
+========================================== */
 
 button{
-    padding:12px 22px;
+
+    -webkit-appearance:none;
+
+    appearance:none;
+
+    padding:
+        12px 22px;
+
     font-size:17px;
+
     margin:5px;
+
     cursor:pointer;
+
     border-radius:8px;
-    border:1px solid #888;
+
+    border:
+        1px solid #888;
+
     background:#f5f5f5;
+
+    color:#000;
+
+    font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
+
 }
+
+
+/* ==========================================
+   BUTTON DISABLED
+========================================== */
 
 button:disabled{
+
     opacity:0.5;
+
     cursor:not-allowed;
+
 }
+
+
+/* ==========================================
+   READER
+========================================== */
 
 #reader{
+
     width:100%;
+
     max-width:500px;
-    margin:20px auto;
+
+    margin:
+        20px auto;
+
 }
+
+
+/* ==========================================
+   RESULT
+========================================== */
 
 #result{
+
     margin-top:20px;
+
     font-size:20px;
+
     font-weight:bold;
+
     word-break:break-all;
+
 }
+
+
+/* ==========================================
+   STATUS
+========================================== */
 
 #status{
+
     margin-top:10px;
+
     font-size:15px;
+
 }
 
+
+/* ==========================================
+   FORMATS
+========================================== */
+
 #formats{
+
     max-width:500px;
-    margin:20px auto;
+
+    margin:
+        20px auto;
+
     text-align:left;
+
     font-size:14px;
+
     line-height:1.6;
+
 }
 
 </style>
@@ -78,12 +176,18 @@ button:disabled{
 </h2>
 
 
+<!-- ========================================
+     BUTTONS
+========================================= -->
+
 <div>
 
 <button
     id="startButton"
     onclick="startScanner()">
+
     START SCANNER
+
 </button>
 
 
@@ -91,31 +195,55 @@ button:disabled{
     id="flashButton"
     onclick="toggleFlash()"
     disabled>
+
     🔦 FLASHLIGHT
+
 </button>
 
 
 <button
     id="closeButton"
     onclick="closeScanner()">
+
     CLOSE
+
 </button>
 
 </div>
 
 
+<!-- ========================================
+     SCANNER
+========================================= -->
+
 <div id="reader"></div>
 
 
+<!-- ========================================
+     RESULT
+========================================= -->
+
 <div id="result">
+
 Ready
+
 </div>
 
+
+<!-- ========================================
+     STATUS
+========================================= -->
 
 <div id="status">
+
 Scanner is ready
+
 </div>
 
+
+<!-- ========================================
+     SUPPORTED FORMATS
+========================================= -->
 
 <div id="formats">
 
@@ -171,7 +299,9 @@ function getScannerMode(){
 
 
     var mode =
-        params.get("mode");
+        params.get(
+            "mode"
+        );
 
 
     console.log(
@@ -181,6 +311,35 @@ function getScannerMode(){
 
 
     return mode;
+
+}
+
+
+/* ==========================================
+   GET RETURN URL
+========================================== */
+
+function getReturnUrl(){
+
+    var params =
+        new URLSearchParams(
+            window.location.search
+        );
+
+
+    var returnUrl =
+        params.get(
+            "returnUrl"
+        );
+
+
+    console.log(
+        "RETURN URL =",
+        returnUrl
+    );
+
+
+    return returnUrl;
 
 }
 
@@ -230,7 +389,9 @@ function startScanner(){
 
 
     /*
-     * Create scanner
+     * =====================================
+     * CREATE SCANNER
+     * =====================================
      */
 
     scanner =
@@ -240,15 +401,18 @@ function startScanner(){
 
 
     /*
-     * Supported formats
+     * =====================================
+     * SUPPORTED FORMATS
+     * =====================================
      */
 
     var formats = [];
 
 
     if(
-        typeof Html5QrcodeSupportedFormats !==
-        "undefined"
+        typeof
+        Html5QrcodeSupportedFormats
+        !== "undefined"
     ){
 
         var availableFormats = [
@@ -304,7 +468,9 @@ function startScanner(){
 
 
     /*
-     * Scanner configuration
+     * =====================================
+     * SCANNER CONFIG
+     * =====================================
      */
 
     var config = {
@@ -312,18 +478,25 @@ function startScanner(){
         fps:10,
 
         qrbox:{
+
             width:250,
+
             height:150
+
         }
 
     };
 
 
     /*
-     * Add formats if available
+     * =====================================
+     * ADD SUPPORTED FORMATS
+     * =====================================
      */
 
-    if(formats.length > 0){
+    if(
+        formats.length > 0
+    ){
 
         config.formatsToSupport =
             formats;
@@ -332,7 +505,9 @@ function startScanner(){
 
 
     /*
-     * Start rear camera
+     * =====================================
+     * START REAR CAMERA
+     * =====================================
      */
 
     scanner.start(
@@ -344,13 +519,19 @@ function startScanner(){
         config,
 
 
+        /*
+         * ==================================
+         * SCAN SUCCESS
+         * ==================================
+         */
+
         function(
             decodedText,
             decodedResult
         ){
 
             /*
-             * Prevent duplicate results
+             * Prevent duplicate scans
              */
 
             if(scanned){
@@ -364,8 +545,20 @@ function startScanner(){
 
 
             console.log(
-                "SCAN RESULT:",
+                "================================"
+            );
+
+            console.log(
+                "SCAN SUCCESS"
+            );
+
+            console.log(
+                "DECODED TEXT =",
                 decodedText
+            );
+
+            console.log(
+                "================================"
             );
 
 
@@ -379,23 +572,33 @@ function startScanner(){
             document.getElementById(
                 "status"
             ).innerText =
-                "Scan successful";
+                "Returning to APP...";
 
 
             /*
-             * Turn flash OFF
+             * Turn flashlight OFF
              */
 
             turnFlashOff();
 
 
             /*
-             * Stop camera
+             * Stop camera first
              */
 
             stopScanner(
 
                 function(){
+
+                    /*
+                     * IMPORTANT
+                     *
+                     * After camera stops,
+                     * directly return by URL.
+                     *
+                     * Do NOT use window.opener.
+                     * Do NOT use window.close().
+                     */
 
                     sendResultToApp(
                         decodedText
@@ -408,10 +611,16 @@ function startScanner(){
         },
 
 
+        /*
+         * ==================================
+         * SCAN ERROR
+         * ==================================
+         */
+
         function(errorMessage){
 
             /*
-             * Normal scanning errors
+             * Normal scan errors
              * are ignored.
              */
 
@@ -419,6 +628,12 @@ function startScanner(){
 
     )
 
+
+    /*
+     * =====================================
+     * CAMERA STARTED
+     * =====================================
+     */
 
     .then(function(){
 
@@ -474,24 +689,38 @@ function startScanner(){
 
 
         /*
-         * Enable flashlight button
+         * Enable flashlight
          */
 
         document.getElementById(
             "flashButton"
-        ).disabled = false;
+        ).disabled =
+            false;
 
+
+        /*
+         * Enable START button
+         */
 
         document.getElementById(
             "startButton"
-        ).disabled = false;
+        ).disabled =
+            false;
 
+
+        /*
+         * Update result
+         */
 
         document.getElementById(
             "result"
         ).innerText =
             "Scanning...";
 
+
+        /*
+         * Update status
+         */
 
         document.getElementById(
             "status"
@@ -500,13 +729,19 @@ function startScanner(){
 
 
         /*
-         * Check flashlight support
+         * Check flashlight
          */
 
         checkFlashSupport();
 
     })
 
+
+    /*
+     * =====================================
+     * CAMERA ERROR
+     * =====================================
+     */
 
     .catch(function(error){
 
@@ -588,11 +823,6 @@ function checkFlashSupport(){
                 "FLASHLIGHT SUPPORTED"
             );
 
-            document.getElementById(
-                "status"
-            ).innerText =
-                "Scanner ready - Flashlight available";
-
         }else{
 
             console.log(
@@ -668,9 +898,12 @@ function toggleFlash(){
         cameraTrack.applyConstraints({
 
             advanced:[
+
                 {
-                    torch:flashOn
+                    torch:
+                        flashOn
                 }
+
             ]
 
         })
@@ -774,9 +1007,11 @@ function turnFlashOff(){
         cameraTrack.applyConstraints({
 
             advanced:[
+
                 {
                     torch:false
                 }
+
             ]
 
         })
@@ -826,108 +1061,114 @@ function turnFlashOff(){
 function stopScanner(callback){
 
     /*
-     * Save scanner reference
+     * Turn flash off first
      */
 
-    var currentScanner =
-        scanner;
+    turnFlashOff();
 
 
     /*
-     * Immediately mark scanner
-     * as no longer running
-     */
-
-    scannerRunning = false;
-
-    cameraTrack = null;
-
-
-    /*
-     * Disable flashlight
-     */
-
-    var flashButton =
-        document.getElementById(
-            "flashButton"
-        );
-
-
-    if(flashButton){
-
-        flashButton.disabled =
-            true;
-
-    }
-
-
-    /*
-     * IMPORTANT
-     *
-     * Do NOT wait for scanner.stop()
-     * before returning to Apps Script.
-     *
-     * iPhone Safari may hang here.
-     */
-
-
-    if(callback){
-
-        callback();
-
-    }
-
-
-    /*
-     * Stop camera in background
+     * =====================================
+     * NO ACTIVE SCANNER
+     * =====================================
      */
 
     if(
-        currentScanner &&
-        typeof currentScanner.stop ===
-        "function"
+        !scanner ||
+        !scannerRunning
     ){
 
-        try{
+        scannerRunning = false;
 
-            currentScanner
-                .stop()
+        cameraTrack = null;
 
-                .then(function(){
 
-                    console.log(
-                        "Scanner stopped"
-                    );
+        if(callback){
 
-                })
-
-                .catch(function(error){
-
-                    console.log(
-                        "Scanner stop error =",
-                        error
-                    );
-
-                });
-
-        }catch(error){
-
-            console.log(
-                "Scanner stop exception =",
-                error
-            );
+            callback();
 
         }
 
+        return;
+
     }
+
+
+    /*
+     * =====================================
+     * STOP CAMERA
+     * =====================================
+     */
+
+    scanner.stop()
+
+    .then(function(){
+
+        scannerRunning = false;
+
+        cameraTrack = null;
+
+
+        console.log(
+            "Scanner stopped"
+        );
+
+
+        document.getElementById(
+            "flashButton"
+        ).disabled =
+            true;
+
+
+        if(callback){
+
+            callback();
+
+        }
+
+    })
+
+
+    .catch(function(error){
+
+        scannerRunning = false;
+
+        cameraTrack = null;
+
+
+        console.log(
+            "Scanner stop error:",
+            error
+        );
+
+
+        document.getElementById(
+            "flashButton"
+        ).disabled =
+            true;
+
+
+        /*
+         * Even if stop fails,
+         * continue returning.
+         */
+
+        if(callback){
+
+            callback();
+
+        }
+
+    });
 
 }
 
 
 /* ==========================================
    SEND RESULT TO APP
-   URL RETURN METHOD
-========================================== */
+   IMPORTANT:
+   USE RETURN URL
+   ========================================== */
 
 function sendResultToApp(decodedText){
 
@@ -973,16 +1214,24 @@ function sendResultToApp(decodedText){
     );
 
 
+    /*
+     * =====================================
+     * CHECK RETURN URL
+     * =====================================
+     */
+
     if(!returnUrl){
+
+        console.log(
+            "NO RETURN URL"
+        );
+
 
         document.getElementById(
             "status"
         ).innerText =
             "Return URL not found.";
 
-        console.log(
-            "NO RETURN URL"
-        );
 
         return;
 
@@ -990,7 +1239,9 @@ function sendResultToApp(decodedText){
 
 
     /*
-     * Build return URL
+     * =====================================
+     * BUILD RETURN URL
+     * =====================================
      */
 
     var separator =
@@ -1019,12 +1270,16 @@ function sendResultToApp(decodedText){
 
 
     /*
+     * =====================================
      * IMPORTANT
      *
-     * Do NOT use window.opener
-     * Do NOT use window.close
+     * DO NOT USE:
      *
-     * Directly navigate back.
+     * window.opener
+     * window.close()
+     *
+     * DIRECT NAVIGATION
+     * =====================================
      */
 
     window.location.href =
@@ -1032,8 +1287,9 @@ function sendResultToApp(decodedText){
 
 }
 
+
 /* ==========================================
-   CLOSE BUTTON
+   CLOSE SCANNER
 ========================================== */
 
 function closeScanner(){
@@ -1060,34 +1316,7 @@ function closeScanner(){
 
 }
 
-/* ==========================================
-   GET RETURN URL
-========================================== */
 
-function getReturnUrl(){
-
-    var params =
-        new URLSearchParams(
-            window.location.search
-        );
-
-
-    var returnUrl =
-        params.get(
-            "returnUrl"
-        );
-
-
-    console.log(
-        "GET RETURN URL =",
-        returnUrl
-    );
-
-
-    return returnUrl;
-
-}
-      
 /* ==========================================
    RETURN TO APP
 ========================================== */
@@ -1099,80 +1328,48 @@ function returnToApp(){
 
 
     console.log(
-        "RETURN TO APP"
+        "================================"
     );
 
+    console.log(
+        "RETURN TO APP"
+    );
 
     console.log(
         "RETURN URL =",
         returnUrl
     );
 
+    console.log(
+        "================================"
+    );
 
-    if(!returnUrl){
 
-        document.getElementById(
-            "status"
-        ).innerText =
-            "Cannot return to app.";
+    /*
+     * =====================================
+     * RETURN URL AVAILABLE
+     * =====================================
+     */
+
+    if(returnUrl){
+
+        console.log(
+            "RETURNING TO APPS SCRIPT"
+        );
+
+
+        /*
+         * Direct navigation
+         *
+         * This works without
+         * window.opener.
+         */
+
+        window.location.href =
+            returnUrl;
+
 
         return;
-
-    }
-
-
-    /*
-     * Directly go back to Apps Script
-     */
-
-    window.location.href =
-        returnUrl;
-
-}
-
-
-    /*
-     * =====================================
-     * FALLBACK
-     * window.opener
-     * =====================================
-     */
-
-    if(window.opener){
-
-        try{
-
-            window.opener.postMessage(
-
-                {
-
-                    type:
-                        "scannerClose"
-
-                },
-
-                "*"
-
-            );
-
-
-            setTimeout(function(){
-
-                window.close();
-
-            },300);
-
-
-            return;
-
-        }catch(error){
-
-            console.log(
-                "RETURN ERROR =",
-                error
-            );
-
-        }
 
     }
 
@@ -1190,22 +1387,42 @@ function returnToApp(){
 
 }
 
+
 /* ==========================================
-   GET RETURN URL
+   PAGE LOAD
 ========================================== */
 
-function getReturnUrl(){
+window.addEventListener(
 
-    var params =
-        new URLSearchParams(
-            window.location.search
+    "load",
+
+    function(){
+
+        console.log(
+            "================================"
         );
 
-    return params.get(
-        "returnUrl"
-    );
+        console.log(
+            "SCANNER PAGE LOADED"
+        );
 
-}
+        console.log(
+            "SCANNER MODE =",
+            getScannerMode()
+        );
+
+        console.log(
+            "RETURN URL =",
+            getReturnUrl()
+        );
+
+        console.log(
+            "================================"
+        );
+
+    }
+
+);
 
 </script>
 
