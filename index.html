@@ -1028,79 +1028,107 @@ function closeScanner(){
 
 }
 
-
 /* ==========================================
    RETURN TO APP
 ========================================== */
 
 function returnToApp(){
 
-    if(window.opener){
+    var returnUrl =
+        getReturnUrl();
 
-        window.opener.postMessage(
 
-            {
+    console.log(
+        "RETURN TO APP"
+    );
 
-                type:"scannerClose"
 
-            },
+    console.log(
+        "RETURN URL =",
+        returnUrl
+    );
 
-            "*"
 
+    /*
+     * =====================================
+     * PRIMARY METHOD
+     * RETURN BY URL
+     * =====================================
+     */
+
+    if(returnUrl){
+
+        console.log(
+            "RETURNING TO APPS SCRIPT BY URL"
         );
 
 
-        setTimeout(function(){
-
-            window.close();
-
-        },300);
+        window.location.replace(
+            returnUrl
+        );
 
 
         return;
 
     }
 
-}
+
+    /*
+     * =====================================
+     * FALLBACK
+     * window.opener
+     * =====================================
+     */
+
+    if(window.opener){
+
+        try{
+
+            window.opener.postMessage(
+
+                {
+
+                    type:
+                        "scannerClose"
+
+                },
+
+                "*"
+
+            );
 
 
-/* ==========================================
-   PAGE LOAD
-========================================== */
+            setTimeout(function(){
 
-window.addEventListener(
-    "load",
-    function(){
+                window.close();
 
-        console.log(
-            "Scanner page loaded"
-        );
+            },300);
 
 
-        console.log(
-            "SCANNER MODE =",
-            getScannerMode()
-        );
+            return;
+
+        }catch(error){
+
+            console.log(
+                "RETURN ERROR =",
+                error
+            );
+
+        }
 
     }
-);
 
 
-/* ==========================================
-   GET RETURN URL
-========================================== */
+    /*
+     * =====================================
+     * NO RETURN URL
+     * =====================================
+     */
 
-function getReturnUrl(){
-
-    var params =
-        new URLSearchParams(
-            window.location.search
-        );
-
-
-    return params.get(
-        "returnUrl"
-    );
+    document.getElementById(
+        "status"
+    ).innerText =
+        "Cannot return to app.";
 
 }
 
