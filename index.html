@@ -923,148 +923,63 @@ function stopScanner(callback){
 
 function sendResultToApp(decodedText){
 
-    var mode =
-        getScannerMode();
-
-
-    var returnUrl =
-        getReturnUrl();
-
-
-    decodedText =
-        String(
-            decodedText || ""
-        ).trim();
-
-
-    console.log(
-        "================================"
-    );
-
-    console.log(
-        "SEND SCAN RESULT"
-    );
-
-    console.log(
-        "VALUE =",
-        decodedText
-    );
-
-    console.log(
-        "MODE =",
-        mode
-    );
-
-    console.log(
-        "RETURN URL =",
-        returnUrl
-    );
-
-    console.log(
-        "WINDOW OPENER =",
-        window.opener
-    );
-
-    console.log(
-        "================================"
-    );
-
-
-    /*
-     * =====================================
-     * METHOD 1
-     * window.opener + postMessage
-     * =====================================
-     */
-
     if(window.opener){
 
-        try{
+        /*
+         * Get scanner mode
+         */
 
-            window.opener.postMessage(
-
-                {
-
-                    type:"barcodeScan",
-
-                    value:decodedText,
-
-                    mode:mode
-
-                },
-
-                "*"
-
-            );
-
-
-            console.log(
-                "RESULT SENT BY postMessage"
-            );
-
-
-            setTimeout(function(){
-
-                window.close();
-
-            },500);
-
-
-            return;
-
-        }catch(error){
-
-            console.log(
-                "postMessage ERROR =",
-                error
-            );
-
-        }
-
-    }
-
-
-    /*
-     * =====================================
-     * METHOD 2
-     * RETURN URL
-     * =====================================
-     */
-
-    if(returnUrl){
-
-        console.log(
-            "RETURNING TO APP BY URL"
-        );
-
-
-        var separator =
-            returnUrl.indexOf("?") >= 0
-                ? "&"
-                : "?";
-
-
-        var finalUrl =
-            returnUrl +
-            separator +
-            "scanResult=" +
-            encodeURIComponent(
-                decodedText
-            ) +
-            "&scanMode=" +
-            encodeURIComponent(
-                mode || ""
-            );
+        var mode =
+            getScannerMode();
 
 
         console.log(
-            "FINAL RETURN URL =",
-            finalUrl
+            "SEND SCAN RESULT"
         );
 
 
-        window.location.href =
-            finalUrl;
+        console.log(
+            "VALUE =",
+            decodedText
+        );
+
+
+        console.log(
+            "MODE =",
+            mode
+        );
+
+
+        /*
+         * Send result to parent window
+         */
+
+        window.opener.postMessage(
+
+            {
+
+                type:"barcodeScan",
+
+                value:decodedText,
+
+                mode:mode
+
+            },
+
+            "*"
+
+        );
+
+
+        /*
+         * Close scanner window
+         */
+
+        setTimeout(function(){
+
+            window.close();
+
+        },500);
 
 
         return;
@@ -1073,9 +988,7 @@ function sendResultToApp(decodedText){
 
 
     /*
-     * =====================================
-     * NO RETURN METHOD
-     * =====================================
+     * No opener
      */
 
     document.getElementById(
@@ -1084,180 +997,113 @@ function sendResultToApp(decodedText){
         "Scanned: " +
         decodedText;
 
+}
 
-    console.log(
-        "NO OPENER AND NO RETURN URL"
+
+/* ==========================================
+   CLOSE BUTTON
+========================================== */
+
+function closeScanner(){
+
+    document.getElementById(
+        "status"
+    ).innerText =
+        "Closing scanner...";
+
+
+    /*
+     * Stop camera first
+     */
+
+    stopScanner(
+
+        function(){
+
+            returnToApp();
+
+        }
+
     );
 
 }
 
+
 /* ==========================================
-   RECEIVE SCANNER RESULT FROM RETURN URL
+   RETURN TO APP
+========================================== */
+
+function returnToApp(){
+
+    if(window.opener){
+
+        window.opener.postMessage(
+
+            {
+
+                type:"scannerClose"
+
+            },
+
+            "*"
+
+        );
+
+
+        setTimeout(function(){
+
+            window.close();
+
+        },300);
+
+
+        return;
+
+    }
+
+}
+
+
+/* ==========================================
+   PAGE LOAD
 ========================================== */
 
 window.addEventListener(
     "load",
     function(){
 
-        var params =
-            new URLSearchParams(
-                window.location.search
-            );
-
-
-        var scanResult =
-            params.get(
-                "scanResult"
-            );
-
-
-        var scanMode =
-            params.get(
-                "scanMode"
-            );
-
-
-        if(!scanResult){
-
-            return;
-
-        }
-
-
-        scanResult =
-            String(
-                scanResult
-            ).trim();
-
-
         console.log(
-            "URL SCAN RESULT =",
-            scanResult
+            "Scanner page loaded"
         );
 
 
         console.log(
-            "URL SCAN MODE =",
-            scanMode
+            "SCANNER MODE =",
+            getScannerMode()
         );
-
-
-        /*
-         * =====================================
-         * RING TRAVELLER BOX
-         * =====================================
-         */
-
-        if(
-            scanMode ===
-            "ringTravellerBox"
-        ){
-
-            var boxInput =
-                document.getElementById(
-                    "boxBarcode"
-                );
-
-
-            if(boxInput){
-
-                boxInput.value =
-                    scanResult;
-
-
-                sessionStorage.setItem(
-                    "ringTravellerBoxBarcode",
-                    scanResult
-                );
-
-
-                loadRingTravellerBox(
-                    scanResult
-                );
-
-            }
-
-        }
-
-
-        /*
-         * =====================================
-         * TRAVELLER BOX RECORD
-         * =====================================
-         */
-
-        else if(
-            scanMode ===
-            "travellerBoxRecord"
-        ){
-
-            var travellerInput =
-                document.getElementById(
-                    "travellerRecordBarcode"
-                );
-
-
-            if(travellerInput){
-
-                travellerInput.value =
-                    scanResult;
-
-
-                sessionStorage.setItem(
-                    "ringTravellerBoxBarcode",
-                    scanResult
-                );
-
-
-                loadRingTravellerBox(
-                    scanResult
-                );
-
-            }
-
-        }
-
-
-        /*
-         * =====================================
-         * NORMAL SEARCH
-         * =====================================
-         */
-
-        else{
-
-            var searchInput =
-                document.getElementById(
-                    "searchKeyword"
-                );
-
-
-            if(searchInput){
-
-                searchInput.value =
-                    scanResult;
-
-            }
-
-        }
-
-
-        /*
-         * =====================================
-         * CLEAN URL
-         * =====================================
-         */
-
-        window.history.replaceState(
-            {},
-            document.title,
-            window.location.pathname
-        );
-
 
     }
 );
-      
+
+
+/* ==========================================
+   GET RETURN URL
+========================================== */
+
+function getReturnUrl(){
+
+    var params =
+        new URLSearchParams(
+            window.location.search
+        );
+
+
+    return params.get(
+        "returnUrl"
+    );
+
+}
+
 </script>
 
 
