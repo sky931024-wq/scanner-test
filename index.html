@@ -917,24 +917,53 @@ function stopScanner(callback){
 }
 
 
+```javascript
 /* ==========================================
    SEND RESULT TO APP
 ========================================== */
 
 function sendResultToApp(decodedText){
 
-    if(window.opener){
+    decodedText =
+        String(
+            decodedText || ""
+        ).trim();
 
-        /*
-         * Get scanner mode
-         */
 
-        var mode =
-            getScannerMode();
-
+    if(!decodedText){
 
         console.log(
-            "SEND SCAN RESULT"
+            "EMPTY SCAN RESULT"
+        );
+
+        return;
+
+    }
+
+
+    /*
+     * =====================================
+     * GET SCANNER MODE
+     * =====================================
+     */
+
+    var mode =
+        getScannerMode();
+
+
+    /*
+     * =====================================
+     * METHOD 1
+     * window.opener + postMessage
+     *
+     * Android / Desktop
+     * =====================================
+     */
+
+    if(window.opener){
+
+        console.log(
+            "SEND RESULT BY postMessage"
         );
 
 
@@ -950,36 +979,116 @@ function sendResultToApp(decodedText){
         );
 
 
-        /*
-         * Send result to parent window
-         */
+        try{
 
-        window.opener.postMessage(
+            window.opener.postMessage(
 
-            {
+                {
 
-                type:"barcodeScan",
+                    type:"barcodeScan",
 
-                value:decodedText,
+                    value:decodedText,
 
-                mode:mode
+                    mode:mode
 
-            },
+                },
 
-            "*"
+                "*"
 
+            );
+
+
+            /*
+             * Close scanner window
+             */
+
+            setTimeout(function(){
+
+                window.close();
+
+            },500);
+
+
+            return;
+
+        }catch(error){
+
+            console.log(
+                "postMessage ERROR =",
+                error
+            );
+
+        }
+
+    }
+
+
+    /*
+     * =====================================
+     * METHOD 2
+     * RETURN URL
+     *
+     * iPhone / Safari fallback
+     * =====================================
+     */
+
+    var returnUrl =
+        getReturnUrl();
+
+
+    console.log(
+        "RETURN URL =",
+        returnUrl
+    );
+
+
+    if(returnUrl){
+
+        console.log(
+            "SEND RESULT BY RETURN URL"
         );
 
 
         /*
-         * Close scanner window
+         * Check whether URL already
+         * contains ?
          */
 
-        setTimeout(function(){
+        var separator =
+            returnUrl.indexOf("?") >= 0
+                ? "&"
+                : "?";
 
-            window.close();
 
-        },500);
+        /*
+         * Build final URL
+         */
+
+        var finalUrl =
+            returnUrl +
+            separator +
+            "scanResult=" +
+            encodeURIComponent(
+                decodedText
+            ) +
+            "&scanMode=" +
+            encodeURIComponent(
+                mode || ""
+            );
+
+
+        console.log(
+            "FINAL RETURN URL =",
+            finalUrl
+        );
+
+
+        /*
+         * Return to App
+         */
+
+        window.location.href =
+            finalUrl;
 
 
         return;
@@ -988,8 +1097,15 @@ function sendResultToApp(decodedText){
 
 
     /*
-     * No opener
+     * =====================================
+     * NO RETURN METHOD
+     * =====================================
      */
+
+    console.log(
+        "NO OPENER AND NO RETURN URL"
+    );
+
 
     document.getElementById(
         "status"
@@ -998,6 +1114,8 @@ function sendResultToApp(decodedText){
         decodedText;
 
 }
+```
+
 
 
 /* ==========================================
