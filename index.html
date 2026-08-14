@@ -326,11 +326,11 @@ function getReturnUrl(){
             window.location.search
         );
 
+    return params.get(
+        "returnUrl"
+    );
 
-    var returnUrl =
-        params.get(
-            "returnUrl"
-        );
+}
 
 
     console.log(
@@ -1173,29 +1173,29 @@ function stopScanner(callback){
 function sendResultToApp(decodedText){
 
     decodedText =
-        String(
-            decodedText || ""
-        ).trim();
+        String(decodedText || "").trim();
 
 
-    var mode =
-        getScannerMode();
+    var params =
+        new URLSearchParams(
+            window.location.search
+        );
 
 
     var returnUrl =
-        getReturnUrl();
+        params.get("returnUrl");
+
+
+    var mode =
+        params.get("mode");
 
 
     console.log(
-        "================================"
+        "=============================="
     );
 
     console.log(
-        "SEND SCAN RESULT"
-    );
-
-    console.log(
-        "VALUE =",
+        "SCAN RESULT =",
         decodedText
     );
 
@@ -1210,27 +1210,21 @@ function sendResultToApp(decodedText){
     );
 
     console.log(
-        "================================"
+        "=============================="
     );
 
 
-    /*
-     * =====================================
-     * CHECK RETURN URL
-     * =====================================
-     */
-
     if(!returnUrl){
-
-        console.log(
-            "NO RETURN URL"
-        );
-
 
         document.getElementById(
             "status"
         ).innerText =
-            "Return URL not found.";
+            "ERROR: returnUrl missing";
+
+
+        alert(
+            "ERROR: returnUrl missing"
+        );
 
 
         return;
@@ -1239,9 +1233,7 @@ function sendResultToApp(decodedText){
 
 
     /*
-     * =====================================
-     * BUILD RETURN URL
-     * =====================================
+     * Build URL
      */
 
     var separator =
@@ -1264,26 +1256,34 @@ function sendResultToApp(decodedText){
 
 
     console.log(
-        "FINAL RETURN URL =",
+        "FINAL URL =",
         finalUrl
     );
 
 
+    document.getElementById(
+        "status"
+    ).innerText =
+        "Returning to APP...";
+
+
     /*
-     * =====================================
-     * IMPORTANT
+     * VERY IMPORTANT
      *
-     * DO NOT USE:
+     * Do not use:
      *
      * window.opener
-     * window.close()
+     * window.close
      *
-     * DIRECT NAVIGATION
-     * =====================================
      */
 
-    window.location.href =
-        finalUrl;
+    setTimeout(function(){
+
+        window.location.assign(
+            finalUrl
+        );
+
+    },300);
 
 }
 
@@ -1297,25 +1297,88 @@ function closeScanner(){
     document.getElementById(
         "status"
     ).innerText =
-        "Closing scanner...";
+        "Returning to APP...";
+
+
+    var params =
+        new URLSearchParams(
+            window.location.search
+        );
+
+
+    var returnUrl =
+        params.get("returnUrl");
+
+
+    console.log(
+        "CLOSE RETURN URL =",
+        returnUrl
+    );
+
+
+    if(!returnUrl){
+
+        alert(
+            "ERROR: returnUrl missing"
+        );
+
+        return;
+
+    }
 
 
     /*
-     * Stop camera first
+     * Stop camera
      */
 
-    stopScanner(
+    if(
+        scanner &&
+        scannerRunning
+    ){
 
-        function(){
+        scanner.stop()
 
-            returnToApp();
+        .then(function(){
 
-        }
+            scannerRunning = false;
 
-    );
+            cameraTrack = null;
+
+
+            window.location.assign(
+                returnUrl
+            );
+
+        })
+
+        .catch(function(error){
+
+            console.log(
+                "Scanner stop error",
+                error
+            );
+
+
+            /*
+             * Even if camera stop fails,
+             * still return.
+             */
+
+            window.location.assign(
+                returnUrl
+            );
+
+        });
+
+    }else{
+
+        window.location.assign(
+            returnUrl
+        );
+
+    }
 
 }
-
 
 /* ==========================================
    RETURN TO APP
@@ -1393,9 +1456,7 @@ function returnToApp(){
 ========================================== */
 
 window.addEventListener(
-
     "load",
-
     function(){
 
         console.log(
@@ -1406,22 +1467,66 @@ window.addEventListener(
             "SCANNER PAGE LOADED"
         );
 
+
+        var mode =
+            getScannerMode();
+
+
+        var returnUrl =
+            getReturnUrl();
+
+
         console.log(
             "SCANNER MODE =",
-            getScannerMode()
+            mode
         );
+
 
         console.log(
             "RETURN URL =",
-            getReturnUrl()
+            returnUrl
         );
+
 
         console.log(
             "================================"
         );
 
-    }
 
+        /*
+         * =================================
+         * CHECK RETURN URL
+         * =================================
+         */
+
+        if(!returnUrl){
+
+            document.getElementById(
+                "status"
+            ).innerText =
+                "RETURN URL NOT FOUND";
+
+
+            console.log(
+                "❌ RETURN URL NOT FOUND"
+            );
+
+
+        }else{
+
+            document.getElementById(
+                "status"
+            ).innerText =
+                "Scanner ready";
+
+
+            console.log(
+                "✅ RETURN URL FOUND"
+            );
+
+        }
+
+    }
 );
 
 </script>
