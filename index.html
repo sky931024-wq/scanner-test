@@ -13,113 +13,56 @@
 <style>
 
 body{
-
-    font-family:
-        Arial,
-        Helvetica,
-        sans-serif;
-
+    font-family:Arial,Helvetica,sans-serif;
     text-align:center;
-
     padding:20px;
-
     margin:0;
-
     background:#ffffff;
-
 }
 
 h2{
-
-    margin:
-        10px 0
-        20px 0;
-
+    margin:10px 0 20px 0;
 }
 
 button{
-
-    -webkit-appearance:none;
-
-    appearance:none;
-
-    padding:
-        12px 22px;
-
+    padding:12px 22px;
     font-size:17px;
-
     margin:5px;
-
     cursor:pointer;
-
     border-radius:8px;
-
-    border:
-        1px solid #888;
-
+    border:1px solid #888;
     background:#f5f5f5;
-
-    color:#000;
-
-    font-family:
-        Arial,
-        Helvetica,
-        sans-serif;
-
 }
 
 button:disabled{
-
     opacity:0.5;
-
     cursor:not-allowed;
-
 }
 
 #reader{
-
     width:100%;
-
     max-width:500px;
-
-    margin:
-        20px auto;
-
+    margin:20px auto;
 }
 
 #result{
-
     margin-top:20px;
-
     font-size:20px;
-
     font-weight:bold;
-
     word-break:break-all;
-
 }
 
 #status{
-
     margin-top:10px;
-
     font-size:15px;
-
 }
 
 #formats{
-
     max-width:500px;
-
-    margin:
-        20px auto;
-
+    margin:20px auto;
     text-align:left;
-
     font-size:14px;
-
     line-height:1.6;
-
 }
 
 </style>
@@ -140,9 +83,7 @@ button:disabled{
 <button
     id="startButton"
     onclick="startScanner()">
-
     START SCANNER
-
 </button>
 
 
@@ -150,18 +91,14 @@ button:disabled{
     id="flashButton"
     onclick="toggleFlash()"
     disabled>
-
     🔦 FLASHLIGHT
-
 </button>
 
 
 <button
     id="closeButton"
     onclick="closeScanner()">
-
     CLOSE
-
 </button>
 
 </div>
@@ -171,16 +108,12 @@ button:disabled{
 
 
 <div id="result">
-
 Ready
-
 </div>
 
 
 <div id="status">
-
 Scanner is ready
-
 </div>
 
 
@@ -226,39 +159,28 @@ var cameraTrack = null;
 
 
 /* ==========================================
-   GET PARAMETER
+   GET SCANNER MODE
 ========================================== */
 
-function getParameter(name){
+function getScannerMode(){
 
     var params =
         new URLSearchParams(
             window.location.search
         );
 
-    return params.get(name);
 
-}
-
-
-/* ==========================================
-   GET SCANNER MODE
-========================================== */
-
-function getScannerMode(){
-
-    return getParameter("mode");
-
-}
+    var mode =
+        params.get("mode");
 
 
-/* ==========================================
-   GET RETURN URL
-========================================== */
+    console.log(
+        "SCANNER MODE =",
+        mode
+    );
 
-function getReturnUrl(){
 
-    return getParameter("returnUrl");
+    return mode;
 
 }
 
@@ -307,34 +229,54 @@ function startScanner(){
         true;
 
 
+    /*
+     * Create scanner
+     */
+
     scanner =
         new Html5Qrcode(
             "reader"
         );
 
 
+    /*
+     * Supported formats
+     */
+
     var formats = [];
 
 
     if(
-        typeof Html5QrcodeSupportedFormats
-        !== "undefined"
+        typeof Html5QrcodeSupportedFormats !==
+        "undefined"
     ){
 
         var availableFormats = [
 
             "QR_CODE",
+
             "CODE_128",
+
             "CODE_39",
+
             "CODE_93",
+
             "CODABAR",
+
             "EAN_13",
+
             "EAN_8",
+
             "UPC_A",
+
             "UPC_E",
+
             "ITF",
+
             "DATA_MATRIX",
+
             "PDF_417",
+
             "AZTEC"
 
         ];
@@ -361,20 +303,25 @@ function startScanner(){
     }
 
 
+    /*
+     * Scanner configuration
+     */
+
     var config = {
 
         fps:10,
 
         qrbox:{
-
             width:250,
-
             height:150
-
         }
 
     };
 
+
+    /*
+     * Add formats if available
+     */
 
     if(formats.length > 0){
 
@@ -383,6 +330,10 @@ function startScanner(){
 
     }
 
+
+    /*
+     * Start rear camera
+     */
 
     scanner.start(
 
@@ -398,6 +349,10 @@ function startScanner(){
             decodedResult
         ){
 
+            /*
+             * Prevent duplicate results
+             */
+
             if(scanned){
 
                 return;
@@ -408,42 +363,9 @@ function startScanner(){
             scanned = true;
 
 
-            decodedText =
-                String(
-                    decodedText || ""
-                ).trim();
-
-
             console.log(
-                "================================"
-            );
-
-            console.log(
-                "SCAN SUCCESS"
-            );
-
-            console.log(
-                "VALUE =",
+                "SCAN RESULT:",
                 decodedText
-            );
-
-            console.log(
-                "MODE =",
-                getScannerMode()
-            );
-
-            console.log(
-                "RETURN URL =",
-                getReturnUrl()
-            );
-
-            console.log(
-                "WINDOW OPENER =",
-                window.opener
-            );
-
-            console.log(
-                "================================"
             );
 
 
@@ -457,7 +379,14 @@ function startScanner(){
             document.getElementById(
                 "status"
             ).innerText =
-                "Returning to APP...";
+                "Scan successful";
+
+
+            /*
+             * Turn flash OFF
+             */
+
+            turnFlashOff();
 
 
             /*
@@ -467,10 +396,6 @@ function startScanner(){
             stopScanner(
 
                 function(){
-
-                    /*
-                     * Send result
-                     */
 
                     sendResultToApp(
                         decodedText
@@ -486,13 +411,14 @@ function startScanner(){
         function(errorMessage){
 
             /*
-             * Normal scan errors.
-             * Ignore.
+             * Normal scanning errors
+             * are ignored.
              */
 
         }
 
     )
+
 
     .then(function(){
 
@@ -500,7 +426,7 @@ function startScanner(){
 
 
         /*
-         * Get camera track
+         * Get camera video track
          */
 
         try{
@@ -540,23 +466,25 @@ function startScanner(){
         }catch(error){
 
             console.log(
-                "Camera track error:",
+                "Cannot get camera track:",
                 error
             );
 
         }
 
 
+        /*
+         * Enable flashlight button
+         */
+
         document.getElementById(
             "flashButton"
-        ).disabled =
-            false;
+        ).disabled = false;
 
 
         document.getElementById(
             "startButton"
-        ).disabled =
-            false;
+        ).disabled = false;
 
 
         document.getElementById(
@@ -571,9 +499,14 @@ function startScanner(){
             "Point camera at Barcode / QR Code";
 
 
+        /*
+         * Check flashlight support
+         */
+
         checkFlashSupport();
 
     })
+
 
     .catch(function(error){
 
@@ -625,6 +558,10 @@ function checkFlashSupport(){
 
     if(!cameraTrack){
 
+        console.log(
+            "No camera track"
+        );
+
         return;
 
     }
@@ -636,6 +573,12 @@ function checkFlashSupport(){
             cameraTrack.getCapabilities();
 
 
+        console.log(
+            "CAMERA CAPABILITIES =",
+            capabilities
+        );
+
+
         if(
             capabilities &&
             capabilities.torch
@@ -645,12 +588,23 @@ function checkFlashSupport(){
                 "FLASHLIGHT SUPPORTED"
             );
 
+            document.getElementById(
+                "status"
+            ).innerText =
+                "Scanner ready - Flashlight available";
+
+        }else{
+
+            console.log(
+                "FLASHLIGHT NOT SUPPORTED"
+            );
+
         }
 
     }catch(error){
 
         console.log(
-            "Flash support error:",
+            "Flash support check error:",
             error
         );
 
@@ -715,14 +669,19 @@ function toggleFlash(){
 
             advanced:[
                 {
-                    torch:
-                        flashOn
+                    torch:flashOn
                 }
             ]
 
         })
 
         .then(function(){
+
+            console.log(
+                "FLASH =",
+                flashOn
+            );
+
 
             if(flashOn){
 
@@ -764,6 +723,17 @@ function toggleFlash(){
 
             flashOn = false;
 
+
+            document.getElementById(
+                "flashButton"
+            ).innerText =
+                "🔦 FLASHLIGHT";
+
+
+            alert(
+                "⚠️ Cannot control flashlight on this device."
+            );
+
         });
 
     }catch(error){
@@ -771,6 +741,11 @@ function toggleFlash(){
         console.log(
             "Flashlight error:",
             error
+        );
+
+
+        alert(
+            "⚠️ Flashlight is not supported."
         );
 
     }
@@ -804,6 +779,15 @@ function turnFlashOff(){
                 }
             ]
 
+        })
+
+        .catch(function(error){
+
+            console.log(
+                "Cannot turn flash off:",
+                error
+            );
+
         });
 
     }catch(error){
@@ -819,15 +803,15 @@ function turnFlashOff(){
     flashOn = false;
 
 
-    var button =
+    var flashButton =
         document.getElementById(
             "flashButton"
         );
 
 
-    if(button){
+    if(flashButton){
 
-        button.innerText =
+        flashButton.innerText =
             "🔦 FLASHLIGHT";
 
     }
@@ -840,6 +824,10 @@ function turnFlashOff(){
 ========================================== */
 
 function stopScanner(callback){
+
+    /*
+     * Turn flash off first
+     */
 
     turnFlashOff();
 
@@ -874,15 +862,15 @@ function stopScanner(callback){
         cameraTrack = null;
 
 
+        console.log(
+            "Scanner stopped"
+        );
+
+
         document.getElementById(
             "flashButton"
         ).disabled =
             true;
-
-
-        console.log(
-            "Scanner stopped"
-        );
 
 
         if(callback){
@@ -893,17 +881,18 @@ function stopScanner(callback){
 
     })
 
+
     .catch(function(error){
+
+        scannerRunning = false;
+
+        cameraTrack = null;
+
 
         console.log(
             "Scanner stop error:",
             error
         );
-
-
-        scannerRunning = false;
-
-        cameraTrack = null;
 
 
         document.getElementById(
@@ -914,7 +903,7 @@ function stopScanner(callback){
 
         /*
          * Even if camera stop fails,
-         * continue.
+         * continue the process.
          */
 
         if(callback){
@@ -934,161 +923,63 @@ function stopScanner(callback){
 
 function sendResultToApp(decodedText){
 
-    decodedText =
-        String(
-            decodedText || ""
-        ).trim();
-
-
-    var mode =
-        getScannerMode();
-
-
-    var returnUrl =
-        getReturnUrl();
-
-
-    console.log(
-        "================================"
-    );
-
-    console.log(
-        "SEND RESULT"
-    );
-
-    console.log(
-        "VALUE =",
-        decodedText
-    );
-
-    console.log(
-        "MODE =",
-        mode
-    );
-
-    console.log(
-        "RETURN URL =",
-        returnUrl
-    );
-
-    console.log(
-        "OPENER =",
-        window.opener
-    );
-
-    console.log(
-        "================================"
-    );
-
-
-    /*
-     * =====================================
-     * METHOD 1
-     * window.opener
-     * =====================================
-     */
-
     if(window.opener){
 
-        try{
+        /*
+         * Get scanner mode
+         */
 
-            window.opener.postMessage(
-
-                {
-
-                    type:
-                        "barcodeScan",
-
-                    value:
-                        decodedText,
-
-                    mode:
-                        mode
-
-                },
-
-                "*"
-
-            );
-
-
-            console.log(
-                "✅ RESULT SENT BY postMessage"
-            );
-
-
-            /*
-             * Close this scanner tab
-             */
-
-            setTimeout(function(){
-
-                window.close();
-
-            },500);
-
-
-            return;
-
-        }catch(error){
-
-            console.log(
-                "postMessage failed:",
-                error
-            );
-
-        }
-
-    }
-
-
-    /*
-     * =====================================
-     * METHOD 2
-     * RETURN URL
-     * =====================================
-     */
-
-    if(returnUrl){
-
-        var separator =
-            returnUrl.indexOf("?") >= 0
-                ? "&"
-                : "?";
-
-
-        var finalUrl =
-            returnUrl +
-            separator +
-            "scanResult=" +
-            encodeURIComponent(
-                decodedText
-            ) +
-            "&scanMode=" +
-            encodeURIComponent(
-                mode || ""
-            );
+        var mode =
+            getScannerMode();
 
 
         console.log(
-            "RETURN BY URL:"
+            "SEND SCAN RESULT"
         );
 
 
         console.log(
-            finalUrl
+            "VALUE =",
+            decodedText
         );
 
 
-        document.getElementById(
-            "status"
-        ).innerText =
-            "Returning to APP...";
-
-
-        window.location.replace(
-            finalUrl
+        console.log(
+            "MODE =",
+            mode
         );
+
+
+        /*
+         * Send result to parent window
+         */
+
+        window.opener.postMessage(
+
+            {
+
+                type:"barcodeScan",
+
+                value:decodedText,
+
+                mode:mode
+
+            },
+
+            "*"
+
+        );
+
+
+        /*
+         * Close scanner window
+         */
+
+        setTimeout(function(){
+
+            window.close();
+
+        },500);
 
 
         return;
@@ -1097,52 +988,28 @@ function sendResultToApp(decodedText){
 
 
     /*
-     * =====================================
-     * NO RETURN METHOD
-     * =====================================
+     * No opener
      */
 
     document.getElementById(
         "status"
     ).innerText =
-        "Cannot return to APP.";
+        "Scanned: " +
+        decodedText;
 
 }
 
 
 /* ==========================================
-   CLOSE SCANNER
+   CLOSE BUTTON
 ========================================== */
 
 function closeScanner(){
 
-    console.log(
-        "================================"
-    );
-
-    console.log(
-        "CLOSE SCANNER"
-    );
-
-    console.log(
-        "OPENER =",
-        window.opener
-    );
-
-    console.log(
-        "RETURN URL =",
-        getReturnUrl()
-    );
-
-    console.log(
-        "================================"
-    );
-
-
     document.getElementById(
         "status"
     ).innerText =
-        "Returning to APP...";
+        "Closing scanner...";
 
 
     /*
@@ -1153,99 +1020,46 @@ function closeScanner(){
 
         function(){
 
-            /*
-             * =================================
-             * METHOD 1
-             * WINDOW OPENER
-             * =================================
-             */
-
-            if(window.opener){
-
-                try{
-
-                    window.opener.postMessage(
-
-                        {
-
-                            type:
-                                "scannerClose"
-
-                        },
-
-                        "*"
-
-                    );
-
-
-                    console.log(
-                        "✅ CLOSE SENT BY postMessage"
-                    );
-
-
-                    setTimeout(function(){
-
-                        window.close();
-
-                    },500);
-
-
-                    return;
-
-                }catch(error){
-
-                    console.log(
-                        "Close postMessage failed:",
-                        error
-                    );
-
-                }
-
-            }
-
-
-            /*
-             * =================================
-             * METHOD 2
-             * RETURN URL
-             * =================================
-             */
-
-            var returnUrl =
-                getReturnUrl();
-
-
-            if(returnUrl){
-
-                console.log(
-                    "RETURN CLOSE BY URL"
-                );
-
-
-                window.location.replace(
-                    returnUrl
-                );
-
-
-                return;
-
-            }
-
-
-            /*
-             * =================================
-             * NO RETURN
-             * =================================
-             */
-
-            document.getElementById(
-                "status"
-            ).innerText =
-                "Cannot return to APP.";
+            returnToApp();
 
         }
 
     );
+
+}
+
+
+/* ==========================================
+   RETURN TO APP
+========================================== */
+
+function returnToApp(){
+
+    if(window.opener){
+
+        window.opener.postMessage(
+
+            {
+
+                type:"scannerClose"
+
+            },
+
+            "*"
+
+        );
+
+
+        setTimeout(function(){
+
+            window.close();
+
+        },300);
+
+
+        return;
+
+    }
 
 }
 
@@ -1258,61 +1072,37 @@ window.addEventListener(
     "load",
     function(){
 
-        var mode =
-            getScannerMode();
-
-
-        var returnUrl =
-            getReturnUrl();
-
-
         console.log(
-            "================================"
-        );
-
-        console.log(
-            "SCANNER PAGE LOADED"
-        );
-
-        console.log(
-            "MODE =",
-            mode
-        );
-
-        console.log(
-            "RETURN URL =",
-            returnUrl
-        );
-
-        console.log(
-            "OPENER =",
-            window.opener
-        );
-
-        console.log(
-            "================================"
+            "Scanner page loaded"
         );
 
 
-        if(returnUrl){
-
-            document.getElementById(
-                "status"
-            ).innerText =
-                "Scanner ready";
-
-        }else{
-
-            document.getElementById(
-                "status"
-            ).innerText =
-                "RETURN URL NOT FOUND";
-
-        }
+        console.log(
+            "SCANNER MODE =",
+            getScannerMode()
+        );
 
     }
 );
 
+
+/* ==========================================
+   GET RETURN URL
+========================================== */
+
+function getReturnUrl(){
+
+    var params =
+        new URLSearchParams(
+            window.location.search
+        );
+
+
+    return params.get(
+        "returnUrl"
+    );
+
+}
 
 </script>
 
