@@ -1029,6 +1029,34 @@ function closeScanner(){
 }
 
 /* ==========================================
+   GET RETURN URL
+========================================== */
+
+function getReturnUrl(){
+
+    var params =
+        new URLSearchParams(
+            window.location.search
+        );
+
+
+    var returnUrl =
+        params.get(
+            "returnUrl"
+        );
+
+
+    console.log(
+        "GET RETURN URL =",
+        returnUrl
+    );
+
+
+    return returnUrl;
+
+}
+      
+/* ==========================================
    RETURN TO APP
 ========================================== */
 
