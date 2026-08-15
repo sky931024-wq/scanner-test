@@ -1181,9 +1181,51 @@ window.addEventListener(
             getScannerMode()
         );
 
+
+        // =====================================
+        // RESET BUTTON STATE
+        // =====================================
+
+        var startButton =
+            document.getElementById(
+                "startButton"
+            );
+
+        var flashButton =
+            document.getElementById(
+                "flashButton"
+            );
+
+
+        if(startButton){
+
+            startButton.disabled =
+                false;
+
+        }
+
+
+        if(flashButton){
+
+            flashButton.disabled =
+                true;
+
+        }
+
+
+        document.getElementById(
+            "result"
+        ).innerText =
+            "Ready";
+
+
+        document.getElementById(
+            "status"
+        ).innerText =
+            "Tap START SCANNER to open camera";
+
     }
 );
-
 
 /* ==========================================
    GET RETURN URL
