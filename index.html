@@ -923,15 +923,6 @@ function stopScanner(callback){
 
 function sendResultToApp(decodedText){
 
-    /*
-     * =====================================
-     * METHOD 1
-     * window.opener
-     *
-     * KEEP ORIGINAL ANDROID METHOD
-     * =====================================
-     */
-
     if(window.opener){
 
         /*
@@ -943,7 +934,7 @@ function sendResultToApp(decodedText){
 
 
         console.log(
-            "SEND SCAN RESULT BY POSTMESSAGE"
+            "SEND SCAN RESULT"
         );
 
 
@@ -997,96 +988,8 @@ function sendResultToApp(decodedText){
 
 
     /*
-     * =====================================
-     * METHOD 2
-     * RETURN URL
-     *
-     * iPhone fallback
-     * =====================================
+     * No opener
      */
-
-    var returnUrl =
-        getReturnUrl();
-
-
-    console.log(
-        "NO WINDOW OPENER"
-    );
-
-
-    console.log(
-        "RETURN URL =",
-        returnUrl
-    );
-
-
-    if(returnUrl){
-
-        var mode =
-            getScannerMode();
-
-
-        /*
-         * Determine URL separator
-         */
-
-        var separator =
-            returnUrl.indexOf("?") >= 0
-                ? "&"
-                : "?";
-
-
-        /*
-         * Build return URL
-         */
-
-        var finalUrl =
-            returnUrl +
-            separator +
-            "scanResult=" +
-            encodeURIComponent(
-                decodedText
-            ) +
-            "&scanMode=" +
-            encodeURIComponent(
-                mode || ""
-            );
-
-
-        console.log(
-            "RETURNING TO APP"
-        );
-
-
-        console.log(
-            "FINAL URL =",
-            finalUrl
-        );
-
-
-        /*
-         * Go back to App
-         */
-
-        window.location.href =
-            finalUrl;
-
-
-        return;
-
-    }
-
-
-    /*
-     * =====================================
-     * NO RETURN METHOD
-     * =====================================
-     */
-
-    console.log(
-        "NO OPENER AND NO RETURN URL"
-    );
-
 
     document.getElementById(
         "status"
@@ -1208,3 +1111,5 @@ function getReturnUrl(){
 
 </html>
 
+
+我現在是改回這個版本了
