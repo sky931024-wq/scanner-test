@@ -925,10 +925,6 @@ function sendResultToApp(decodedText){
 
     if(window.opener){
 
-        /*
-         * Get scanner mode
-         */
-
         var mode =
             getScannerMode();
 
@@ -950,10 +946,6 @@ function sendResultToApp(decodedText){
         );
 
 
-        /*
-         * Send result to parent window
-         */
-
         window.opener.postMessage(
 
             {
@@ -971,10 +963,6 @@ function sendResultToApp(decodedText){
         );
 
 
-        /*
-         * Close scanner window
-         */
-
         setTimeout(function(){
 
             window.close();
@@ -988,14 +976,125 @@ function sendResultToApp(decodedText){
 
 
     /*
-     * No opener
+     * =====================================
+     * iPHONE FALLBACK
+     * =====================================
      */
 
-    document.getElementById(
-        "status"
-    ).innerText =
-        "Scanned: " +
-        decodedText;
+    returnResultToAppByUrl(
+        decodedText
+    );
+
+}
+/* ==========================================
+   IPHONE RETURN TO APP
+========================================== */
+
+function returnResultToAppByUrl(decodedText){
+
+    decodedText =
+        String(
+            decodedText || ""
+        ).trim();
+
+
+    if(!decodedText){
+
+        return;
+
+    }
+
+
+    var params =
+        new URLSearchParams(
+            window.location.search
+        );
+
+
+    var returnUrl =
+        params.get(
+            "returnUrl"
+        );
+
+
+    var mode =
+        params.get(
+            "mode"
+        );
+
+
+    console.log(
+        "================================"
+    );
+
+    console.log(
+        "IPHONE RETURN"
+    );
+
+    console.log(
+        "RETURN URL =",
+        returnUrl
+    );
+
+    console.log(
+        "MODE =",
+        mode
+    );
+
+    console.log(
+        "VALUE =",
+        decodedText
+    );
+
+    console.log(
+        "================================"
+    );
+
+
+    if(!returnUrl){
+
+        document.getElementById(
+            "status"
+        ).innerText =
+            "Return URL not found";
+
+        return;
+
+    }
+
+
+    var separator =
+        returnUrl.indexOf("?") >= 0
+            ? "&"
+            : "?";
+
+
+    var finalUrl =
+        returnUrl +
+        separator +
+        "scanResult=" +
+        encodeURIComponent(
+            decodedText
+        ) +
+        "&scanMode=" +
+        encodeURIComponent(
+            mode || ""
+        );
+
+
+    console.log(
+        "FINAL RETURN URL =",
+        finalUrl
+    );
+
+
+    /*
+     * iPhone Safari
+     */
+
+    window.location.assign(
+        finalUrl
+    );
 
 }
 
